@@ -6,7 +6,7 @@ const app = new Hono();
 app.use(
 	'*',
 	cors({
-		origin: '*',
+		origin: ['http://localhost:5173', 'https://webhooks.pixly.sh'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowHeaders: ['Content-Type', 'Authorization'],
 	})
