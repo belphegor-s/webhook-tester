@@ -20,8 +20,6 @@ const jsonResponse = (data, status = 200) =>
 
 const generateEndpoint = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-app.get('/favicon.ico', (c) => c.body(null, 404));
-
 app.get('/api/webhooks', async (c) => {
 	const { DB } = c.env;
 	try {
