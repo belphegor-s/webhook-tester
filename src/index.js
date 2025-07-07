@@ -76,16 +76,16 @@ app.post('/api/webhooks', async (c) => {
 	}
 });
 
-app.get('/api/webhooks/:id', async (c) => {
+app.get('/api/webhooks/:endpoint', async (c) => {
 	const { DB } = c.env;
-	const id = c.req.param('id');
+	const endpoint = c.req.param('endpoint');
 	try {
 		const webhook = await DB.prepare(
 			`
-			SELECT * FROM webhooks WHERE id = ?
+			SELECT * FROM webhooks WHERE endpoint = ?
 		`
 		)
-			.bind(id)
+			.bind(endpoint)
 			.first();
 
 		if (!webhook) return jsonResponse({ error: 'Webhook not found' }, 404);
@@ -146,21 +146,33 @@ app.delete('/api/webhooks/:id', async (c) => {
 	}
 });
 
-app.get('/api/webhooks/:id/requests', async (c) => {
+app.get('/api/webhooks/:endpoint/requests', async (c) => {
 	const { DB } = c.env;
-	const id = c.req.param('id');
+	const endpoint = c.req.param('endpoint');
 	const limit = parseInt(c.req.query('limit') || '50');
 	const offset = parseInt(c.req.query('offset') || '0');
 	try {
+		const webhook = await DB.prepare(
+			`
+			SELECT id FROM webhooks WHERE endpoint = ?
+		`
+		)
+			.bind(endpoint)
+			.first();
+
+		if (!webhook) {
+			return jsonResponse({ error: 'Webhook not found' }, 404);
+		}
+
 		const { results } = await DB.prepare(
 			`
-			SELECT * FROM webhook_requests 
-			WHERE webhook_id = ? 
-			ORDER BY created_at DESC 
+			SELECT * FROM webhook_requests
+			WHERE webhook_id = ?
+			ORDER BY created_at DESC
 			LIMIT ? OFFSET ?
 		`
 		)
-			.bind(id, limit, offset)
+			.bind(webhook.id, limit, offset)
 			.all();
 
 		return jsonResponse(results);
@@ -194,6 +206,13 @@ app.get('/api/webhooks/:id/stats', async (c) => {
 app.all('/webhook/:endpoint', async (c) => {
 	const { DB } = c.env;
 	const endpoint = c.req.param('endpoint');
+	const method = c.req.method;
+
+	if (method === 'GET') {
+		const url = `https://webhooks.pixly.sh?webhook_endpoint=${encodeURIComponent(endpoint)}`;
+		return Response.redirect(url, 302);
+	}
+
 	try {
 		const webhook = await DB.prepare(
 			`
