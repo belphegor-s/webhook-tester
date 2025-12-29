@@ -39,7 +39,12 @@ app.get('/api/webhooks', async (c) => {
 			.bind(limit, offset)
 			.all();
 
-		return jsonResponse(results);
+		const sanitized = results.map((w) => {
+			delete w.secret;
+			return w;
+		});
+
+		return jsonResponse(sanitized);
 	} catch {
 		return jsonResponse({ error: 'Failed to fetch webhooks' }, 500);
 	}
@@ -94,6 +99,9 @@ app.get('/api/webhooks/:endpoint', async (c) => {
 			.first();
 
 		if (!webhook) return jsonResponse({ error: 'Webhook not found' }, 404);
+
+		delete webhook.secret;
+
 		return jsonResponse(webhook);
 	} catch {
 		return jsonResponse({ error: 'Failed to fetch webhook' }, 500);
@@ -180,7 +188,27 @@ app.get('/api/webhooks/:endpoint/requests', async (c) => {
 			.bind(webhook.id, limit, offset)
 			.all();
 
-		return jsonResponse(results);
+		const sanitized = results.map((r) => {
+			let headers;
+			try {
+				headers = JSON.parse(r.headers || '{}');
+			} catch {
+				headers = {};
+			}
+
+			const sensitiveKeys = ['authorization', 'x-api-key', 'api-key', 'token', 'authentication'];
+
+			for (const key of sensitiveKeys) {
+				if (headers[key]) headers[key] = '<redacted>';
+			}
+
+			return {
+				...r,
+				headers: JSON.stringify(headers),
+			};
+		});
+
+		return jsonResponse(sanitized);
 	} catch {
 		return jsonResponse({ error: 'Failed to fetch webhook requests' }, 500);
 	}
