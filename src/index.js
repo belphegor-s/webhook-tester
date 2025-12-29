@@ -22,6 +22,9 @@ const generateEndpoint = () => Math.random().toString(36).substring(2, 15) + Mat
 
 app.get('/api/webhooks', async (c) => {
 	const { DB } = c.env;
+	const limit = parseInt(c.req.query('limit') || '50');
+	const offset = parseInt(c.req.query('offset') || '0');
+
 	try {
 		const { results } = await DB.prepare(
 			`
@@ -30,8 +33,12 @@ app.get('/api/webhooks', async (c) => {
 			LEFT JOIN webhook_requests wr ON w.id = wr.webhook_id
 			GROUP BY w.id
 			ORDER BY w.created_at DESC
-		`
-		).all();
+			LIMIT ? OFFSET ?
+			`
+		)
+			.bind(limit, offset)
+			.all();
+
 		return jsonResponse(results);
 	} catch {
 		return jsonResponse({ error: 'Failed to fetch webhooks' }, 500);
@@ -183,16 +190,20 @@ app.get('/api/webhooks/:id/stats', async (c) => {
 	const { DB } = c.env;
 	const id = c.req.param('id');
 	const days = parseInt(c.req.query('days') || '7');
+	const limit = parseInt(c.req.query('limit') || '50');
+	const offset = parseInt(c.req.query('offset') || '0');
+
 	try {
 		const { results } = await DB.prepare(
 			`
-			SELECT * FROM webhook_stats 
-			WHERE webhook_id = ? 
+			SELECT * FROM webhook_stats
+			WHERE webhook_id = ?
 			AND date >= date('now', '-${days} days')
 			ORDER BY date DESC
-		`
+			LIMIT ? OFFSET ?
+			`
 		)
-			.bind(id)
+			.bind(id, limit, offset)
 			.all();
 
 		return jsonResponse(results);
@@ -212,13 +223,7 @@ app.all('/webhook/:endpoint', async (c) => {
 	}
 
 	try {
-		const webhook = await DB.prepare(
-			`
-			SELECT * FROM webhooks WHERE endpoint = ? AND is_active = TRUE
-		`
-		)
-			.bind(endpoint)
-			.first();
+		const webhook = await DB.prepare(`SELECT * FROM webhooks WHERE endpoint = ? AND is_active = TRUE`).bind(endpoint).first();
 
 		if (!webhook) return jsonResponse({ error: 'Webhook not found' }, 404);
 
