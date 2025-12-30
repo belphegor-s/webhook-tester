@@ -26,6 +26,10 @@ app.get('/api/webhooks', async (c) => {
 	const offset = parseInt(c.req.query('offset') || '0');
 
 	try {
+		const { results: countRes } = await DB.prepare(`SELECT COUNT(*) as total FROM webhooks`).all();
+		const total = countRes[0].total;
+		const totalPages = Math.ceil(total / limit);
+
 		const { results } = await DB.prepare(
 			`
 			SELECT w.*, COUNT(wr.id) as total_requests, MAX(wr.created_at) as last_request
@@ -44,7 +48,13 @@ app.get('/api/webhooks', async (c) => {
 			return w;
 		});
 
-		return jsonResponse(sanitized);
+		return jsonResponse({
+			data: sanitized,
+			total,
+			totalPages,
+			limit,
+			offset,
+		});
 	} catch {
 		return jsonResponse({ error: 'Failed to fetch webhooks' }, 500);
 	}
@@ -164,18 +174,20 @@ app.get('/api/webhooks/:endpoint/requests', async (c) => {
 	const endpoint = c.req.param('endpoint');
 	const limit = parseInt(c.req.query('limit') || '50');
 	const offset = parseInt(c.req.query('offset') || '0');
+
 	try {
-		const webhook = await DB.prepare(
-			`
-			SELECT id FROM webhooks WHERE endpoint = ?
-		`
-		)
-			.bind(endpoint)
-			.first();
+		const webhook = await DB.prepare(`SELECT id FROM webhooks WHERE endpoint = ?`).bind(endpoint).first();
 
 		if (!webhook) {
 			return jsonResponse({ error: 'Webhook not found' }, 404);
 		}
+
+		const { results: countRes } = await DB.prepare(`SELECT COUNT(*) AS total FROM webhook_requests WHERE webhook_id = ?`)
+			.bind(webhook.id)
+			.all();
+
+		const total = countRes[0].total;
+		const totalPages = Math.ceil(total / limit);
 
 		const { results } = await DB.prepare(
 			`
@@ -197,7 +209,6 @@ app.get('/api/webhooks/:endpoint/requests', async (c) => {
 			}
 
 			const sensitiveKeys = ['authorization', 'x-api-key', 'api-key', 'token', 'authentication'];
-
 			for (const key of sensitiveKeys) {
 				if (headers[key]) headers[key] = '<redacted>';
 			}
@@ -208,8 +219,14 @@ app.get('/api/webhooks/:endpoint/requests', async (c) => {
 			};
 		});
 
-		return jsonResponse(sanitized);
-	} catch {
+		return jsonResponse({
+			data: sanitized,
+			total,
+			totalPages,
+			limit,
+			offset,
+		});
+	} catch (err) {
 		return jsonResponse({ error: 'Failed to fetch webhook requests' }, 500);
 	}
 });
