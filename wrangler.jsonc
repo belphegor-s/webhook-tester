@@ -24,6 +24,12 @@
 			"binding": "WEBHOOK_CACHE",
 			"id": "84c66c4a1b1344159213ac77e4f1e53b"
 		}
+	],
+	"routes": [
+		{
+			"pattern": "hooks.pixly.sh",
+			"custom_domain": true
+		}
 	]
 	/**
 	 * Smart Placement
