@@ -15,7 +15,7 @@ app.use(
 app.use('*', async (c, next) => {
 	const path = new URL(c.req.url).pathname;
 
-	if (/^\/webhook\/[^/]+/.test(path)) {
+	if (/^\/webhook\/[^/]+/.test(path) || path === '/health') {
 		return next();
 	}
 
