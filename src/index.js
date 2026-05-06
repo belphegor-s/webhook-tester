@@ -9,7 +9,7 @@ app.use(
 		origin: ['http://localhost:5173', 'https://webhooks.pixly.sh'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowHeaders: ['Content-Type', 'Authorization'],
-	})
+	}),
 );
 
 const jsonResponse = (data, status = 200) =>
@@ -19,6 +19,10 @@ const jsonResponse = (data, status = 200) =>
 	});
 
 const generateEndpoint = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+app.get('/health', async (c) => {
+	return jsonResponse({ status: 'ok' });
+});
 
 app.get('/api/webhooks', async (c) => {
 	const { DB } = c.env;
@@ -38,7 +42,7 @@ app.get('/api/webhooks', async (c) => {
 			GROUP BY w.id
 			ORDER BY w.created_at DESC
 			LIMIT ? OFFSET ?
-			`
+			`,
 		)
 			.bind(limit, offset)
 			.all();
@@ -75,7 +79,7 @@ app.post('/api/webhooks', async (c) => {
 			`
 			INSERT INTO webhooks (name, endpoint, description, secret)
 			VALUES (?, ?, ?, ?)
-		`
+		`,
 		)
 			.bind(name, endpoint, description, secret)
 			.run();
@@ -85,7 +89,7 @@ app.post('/api/webhooks', async (c) => {
 		const webhook = await DB.prepare(
 			`
 			SELECT * FROM webhooks WHERE endpoint = ?
-		`
+		`,
 		)
 			.bind(endpoint)
 			.first();
@@ -103,7 +107,7 @@ app.get('/api/webhooks/:endpoint', async (c) => {
 		const webhook = await DB.prepare(
 			`
 			SELECT * FROM webhooks WHERE endpoint = ?
-		`
+		`,
 		)
 			.bind(endpoint)
 			.first();
@@ -129,7 +133,7 @@ app.put('/api/webhooks/:id', async (c) => {
 			UPDATE webhooks 
 			SET name = ?, description = ?, secret = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
 			WHERE id = ?
-		`
+		`,
 		)
 			.bind(name, description, secret, is_active, id)
 			.run();
@@ -139,7 +143,7 @@ app.put('/api/webhooks/:id', async (c) => {
 		const webhook = await DB.prepare(
 			`
 			SELECT * FROM webhooks WHERE id = ?
-		`
+		`,
 		)
 			.bind(id)
 			.first();
@@ -157,7 +161,7 @@ app.delete('/api/webhooks/:id', async (c) => {
 		const { success } = await DB.prepare(
 			`
 			DELETE FROM webhooks WHERE id = ?
-		`
+		`,
 		)
 			.bind(id)
 			.run();
@@ -195,7 +199,7 @@ app.get('/api/webhooks/:endpoint/requests', async (c) => {
 			WHERE webhook_id = ?
 			ORDER BY created_at DESC
 			LIMIT ? OFFSET ?
-		`
+		`,
 		)
 			.bind(webhook.id, limit, offset)
 			.all();
@@ -246,7 +250,7 @@ app.get('/api/webhooks/:id/stats', async (c) => {
 			AND date >= date('now', '-${days} days')
 			ORDER BY date DESC
 			LIMIT ? OFFSET ?
-			`
+			`,
 		)
 			.bind(id, limit, offset)
 			.all();
@@ -290,7 +294,7 @@ app.all('/webhook/:endpoint', async (c) => {
 			`
 			INSERT INTO webhook_requests (webhook_id, method, headers, body, query_params, ip_address, user_agent, response_time)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-		`
+		`,
 		)
 			.bind(webhook.id, method, JSON.stringify(headers), body, JSON.stringify(query), ip, ua, responseTime)
 			.run();
@@ -302,7 +306,7 @@ app.all('/webhook/:endpoint', async (c) => {
 			ON CONFLICT(webhook_id, date) DO UPDATE SET
 				total_requests = total_requests + 1,
 				success_requests = success_requests + 1
-		`
+		`,
 		)
 			.bind(webhook.id, today)
 			.run();
