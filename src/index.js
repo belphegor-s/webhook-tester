@@ -8,9 +8,42 @@ app.use(
 	cors({
 		origin: ['http://localhost:5173', 'https://webhooks.pixly.sh'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		allowHeaders: ['Content-Type', 'Authorization'],
+		allowHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
 	}),
 );
+
+app.use('*', async (c, next) => {
+	const path = new URL(c.req.url).pathname;
+
+	if (/^\/webhook\/[^/]+/.test(path)) {
+		return next();
+	}
+
+	const apiKey = c.env.API_KEY;
+	if (!apiKey) {
+		return jsonResponse({ error: 'Server misconfiguration' }, 500);
+	}
+
+	const provided = c.req.header('x-api-key') || '';
+
+	const encoder = new TextEncoder();
+	const providedBytes = encoder.encode(provided);
+	const expectedBytes = encoder.encode(apiKey);
+
+	// Compare lengths without short-circuit, then content via timingSafeEqual
+	const lengthMatch = providedBytes.length === expectedBytes.length;
+	const maxLen = Math.max(providedBytes.length, expectedBytes.length);
+	const a = new Uint8Array(maxLen);
+	const b = new Uint8Array(maxLen);
+	a.set(providedBytes);
+	b.set(expectedBytes);
+
+	if (!lengthMatch || !crypto.subtle.timingSafeEqual(a, b)) {
+		return jsonResponse({ error: 'Unauthorized' }, 401);
+	}
+
+	return next();
+});
 
 const jsonResponse = (data, status = 200) =>
 	new Response(JSON.stringify(data), {
