@@ -6,7 +6,7 @@ const app = new Hono();
 app.use(
 	'*',
 	cors({
-		origin: ['http://localhost:5173', 'https://webhooks.pixly.sh'],
+		origin: ['http://localhost:5173', 'https://webhooks.procd.cc'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
 	}),
@@ -300,7 +300,7 @@ app.all('/webhook/:endpoint', async (c) => {
 	const method = c.req.method;
 
 	if (method === 'GET') {
-		const url = `https://webhooks.pixly.sh?webhook_endpoint=${encodeURIComponent(endpoint)}`;
+		const url = `https://webhooks.procd.cc?webhook_endpoint=${encodeURIComponent(endpoint)}`;
 		return Response.redirect(url, 302);
 	}
 

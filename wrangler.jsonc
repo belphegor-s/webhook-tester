@@ -23,7 +23,7 @@
 	],
 	"routes": [
 		{
-			"pattern": "hooks.pixly.sh",
+			"pattern": "hooks.procd.cc",
 			"custom_domain": true,
 		},
 	],

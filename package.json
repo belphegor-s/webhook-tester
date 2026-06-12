@@ -10,10 +10,10 @@
 		"db:create": "wrangler d1 create webhook-db"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250703.0",
-		"wrangler": "^4.23.0"
+		"@cloudflare/workers-types": "4.20250703.0",
+		"wrangler": "4.23.0"
 	},
 	"dependencies": {
-		"hono": "^4.8.3"
+		"hono": "4.8.3"
 	}
 }
