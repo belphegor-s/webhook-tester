@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { KeyRound, LogOut, Shield } from 'lucide-react';
+import { BookOpen, KeyRound, LogOut, Shield } from 'lucide-react';
 import { Container } from './Container';
 import { Logo } from './Logo';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/DropdownMenu';
 import { cn } from '../../lib/utils';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 const Slash = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5 shrink-0 text-border" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -21,8 +22,16 @@ const UserAvatar = ({ user, className }) => {
   return <span className={cn(base, 'flex items-center justify-center text-xs font-medium uppercase')}>{(user.name || user.login || '?').charAt(0)}</span>;
 };
 
+const navLink = (active) =>
+  cn(
+    'inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:size-4 [&_svg]:shrink-0',
+    active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+  );
+
 // `crumb` is the current page's title after the logo (a webhook name, "Admin"), or empty on the webhook list.
-const Navbar = ({ crumb, onHome, user, onOpenApiKeys, onOpenAdmin, onLogout }) => {
+// Docs, API keys and Admin sit in the bar when there's room (md and up) and move into the account menu below that.
+const Navbar = ({ crumb, onHome, user, onOpenApiKeys, onOpenAdmin, adminActive, onLogout }) => {
+  const wide = useMediaQuery('(min-width: 768px)');
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <Container className="flex h-14 items-center justify-between gap-3">
@@ -40,44 +49,75 @@ const Navbar = ({ crumb, onHome, user, onOpenApiKeys, onOpenAdmin, onLogout }) =
           )}
         </nav>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex shrink-0 items-center rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
-              aria-label="Account menu"
-            >
-              <UserAvatar user={user} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-60">
-            <DropdownMenuLabel className="flex items-center gap-2.5 py-2 font-normal">
-              <UserAvatar user={user} className="size-8" />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium text-foreground">{user.name || user.login}</span>
-                <span className="block truncate text-xs text-muted-foreground" title={user.email}>
-                  {user.email}
+        <div className="flex shrink-0 items-center gap-1">
+          {wide && (
+            <nav aria-label="Main" className="mr-2 flex items-center gap-0.5">
+              <a href="/docs" className={navLink(false)}>
+                <BookOpen />
+                API docs
+              </a>
+              <button type="button" onClick={onOpenApiKeys} className={navLink(false)}>
+                <KeyRound />
+                API keys
+              </button>
+              {user.is_admin && (
+                <button type="button" onClick={onOpenAdmin} aria-current={adminActive ? 'page' : undefined} className={navLink(adminActive)}>
+                  <Shield />
+                  Admin
+                </button>
+              )}
+            </nav>
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex shrink-0 items-center rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                aria-label="Account menu"
+              >
+                <UserAvatar user={user} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-60">
+              <DropdownMenuLabel className="flex items-center gap-2.5 py-2 font-normal">
+                <UserAvatar user={user} className="size-8" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-foreground">{user.name || user.login}</span>
+                  <span className="block truncate text-xs text-muted-foreground" title={user.email}>
+                    {user.email}
+                  </span>
                 </span>
-              </span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onOpenApiKeys}>
-              <KeyRound />
-              API keys
-            </DropdownMenuItem>
-            {user.is_admin && (
-              <DropdownMenuItem onSelect={onOpenAdmin}>
-                <Shield />
-                Admin
+              </DropdownMenuLabel>
+              {!wide && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href="/docs">
+                      <BookOpen />
+                      API docs
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={onOpenApiKeys}>
+                    <KeyRound />
+                    API keys
+                  </DropdownMenuItem>
+                  {user.is_admin && (
+                    <DropdownMenuItem onSelect={onOpenAdmin}>
+                      <Shield />
+                      Admin
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={onLogout}>
+                <LogOut />
+                Log out
               </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onLogout}>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </Container>
     </header>
   );

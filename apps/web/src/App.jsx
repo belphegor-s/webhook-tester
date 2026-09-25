@@ -315,6 +315,7 @@ const AuthenticatedApp = ({ user, logout }) => {
         user={user}
         onOpenApiKeys={() => setShowApiKeys(true)}
         onOpenAdmin={openAdmin}
+        adminActive={view === 'admin'}
         onLogout={logout}
       />
 
