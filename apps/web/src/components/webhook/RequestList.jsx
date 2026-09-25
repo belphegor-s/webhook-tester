@@ -9,8 +9,12 @@ import { formatRelative } from '../../utils/formatRelative';
 import { formatPayload, isEmptyPayload } from '../../utils/formatPayload';
 import { cn } from '../../lib/utils';
 
-// Syntax highlighting is only needed once a request is expanded, so load it on demand.
+// Syntax highlighting is only needed for the empty-state snippet or an expanded request, so load it on demand.
 const CodeBlock = lazy(() => import('../ui/CodeBlock').then((m) => ({ default: m.CodeBlock })));
+
+const snippetStyle = { padding: '0.75rem 2.75rem 0.75rem 0.875rem' };
+
+const curlExample = (url) => `curl -X POST ${url} \\\n  -H "Content-Type: application/json" \\\n  -d '{"hello":"world"}'`;
 
 const METHOD_VARIANT = { GET: 'info', POST: 'success', PUT: 'warning', PATCH: 'warning', DELETE: 'error' };
 
@@ -81,7 +85,7 @@ const RequestDetails = ({ request }) => {
           {empty ? (
             <p className="px-4 py-8 text-center text-xs text-muted-foreground">Nothing here</p>
           ) : (
-            <Suspense fallback={<pre className="overflow-auto px-4 py-3.5 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">{current}</pre>}>
+            <Suspense fallback={<pre className="max-h-[28rem] overflow-y-auto px-4 py-3.5 font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-muted-foreground">{current}</pre>}>
               <CodeBlock code={current} />
             </Suspense>
           )}
@@ -176,9 +180,12 @@ export const RequestList = ({ requests, url }) => {
         <h3 className="text-sm font-medium">Waiting for requests</h3>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">Send a request to your endpoint and it shows up here automatically.</p>
         {url && (
-          <code className="mt-5 block w-full max-w-lg overflow-x-auto rounded-lg border bg-subtle px-3 py-2 text-left font-mono text-[11px] whitespace-nowrap text-muted-foreground sm:w-auto sm:text-xs">
-            {`curl -X POST ${url} -H "Content-Type: application/json" -d '{"hello":"world"}'`}
-          </code>
+          <div className="relative mt-5 w-full max-w-lg rounded-lg border bg-subtle text-left">
+            <Suspense fallback={<pre className="px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-muted-foreground">{curlExample(url)}</pre>}>
+              <CodeBlock code={curlExample(url)} language="bash" style={snippetStyle} />
+            </Suspense>
+            <CopyButton value={curlExample(url)} label="Copy command" className="absolute top-1.5 right-1.5 size-7" />
+          </div>
         )}
       </div>
     );

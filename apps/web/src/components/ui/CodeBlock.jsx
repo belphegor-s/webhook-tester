@@ -9,13 +9,14 @@ import { useTheme } from '../../hooks/useTheme';
 SyntaxHighlighter.registerLanguage('bash', bash);
 SyntaxHighlighter.registerLanguage('json', json);
 
-const codeTagProps = { style: { fontFamily: 'var(--font-mono)', background: 'transparent' } };
-const customStyle = { margin: 0, padding: '0.875rem 1rem', fontSize: '12px', lineHeight: 1.6, background: 'transparent', maxHeight: '28rem', overflow: 'auto' };
+// Long unbroken tokens (URLs, keys, base64) wrap too, so code never scrolls sideways.
+const codeStyle = { fontFamily: 'var(--font-mono)', background: 'transparent', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' };
+const customStyle = { margin: 0, padding: '0.875rem 1rem', fontSize: '12px', lineHeight: 1.6, background: 'transparent', maxHeight: '28rem', overflowX: 'hidden', overflowY: 'auto' };
 
 export function CodeBlock({ code, language = 'json', style }) {
   const { resolvedTheme } = useTheme();
   return (
-    <SyntaxHighlighter language={language} style={resolvedTheme === 'dark' ? oneDark : oneLight} wrapLongLines codeTagProps={codeTagProps} customStyle={style ? { ...customStyle, ...style } : customStyle}>
+    <SyntaxHighlighter language={language} style={resolvedTheme === 'dark' ? oneDark : oneLight} wrapLongLines codeTagProps={{ style: codeStyle }} customStyle={style ? { ...customStyle, ...style } : customStyle}>
       {code}
     </SyntaxHighlighter>
   );

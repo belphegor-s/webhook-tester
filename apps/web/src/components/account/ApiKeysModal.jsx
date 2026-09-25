@@ -159,7 +159,7 @@ export function ApiKeysModal({ open, onOpenChange }) {
         <div className="space-y-2">
           <p className="text-sm font-medium">Usage</p>
           <div className="relative rounded-lg border bg-subtle">
-            <Suspense fallback={<pre className="overflow-x-auto px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed text-muted-foreground">{example}</pre>}>
+            <Suspense fallback={<pre className="px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-muted-foreground">{example}</pre>}>
               <CodeBlock code={example} language="bash" style={usageStyle} />
             </Suspense>
             <CopyButton value={example} label="Copy command" className="absolute top-1.5 right-1.5 size-7" />
