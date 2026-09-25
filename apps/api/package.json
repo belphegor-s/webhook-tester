@@ -1,0 +1,20 @@
+{
+	"name": "webhook-tester",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"build": "webpack --mode production",
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
+		"db:migrate:local": "wrangler d1 migrations apply webhook-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply webhook-db --remote",
+		"db:create": "wrangler d1 create webhook-db"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "4.20250703.0",
+		"wrangler": "4.23.0"
+	},
+	"dependencies": {
+		"hono": "4.8.3"
+	}
+}

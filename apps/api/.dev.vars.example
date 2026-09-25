@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `npm run dev`. Create a separate GitHub OAuth app for local development with
+# callback URL http://localhost:5173/api/auth/github/callback (the dashboard proxies /api to this worker).
+APP_URL=http://localhost:5173
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=

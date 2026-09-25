@@ -1,6 +1,5 @@
 # http://editorconfig.org
-# Root defaults; apps/api and apps/web carry their own .editorconfig.
-root = true
+root = false
 
 [*]
 indent_style = tab
@@ -9,6 +8,5 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.{md,yml}]
+[*.yml]
 indent_style = space
-indent_size = 2
