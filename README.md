@@ -18,6 +18,23 @@ Each app keeps its own `package.json` and lockfile, so both deploy exactly as be
 - API keys (`whk_…`) are created in the dashboard (account menu → API keys). The full key is shown once; only its hash is stored. Send it as `x-api-key: whk_…` or `Authorization: Bearer whk_…`. Keys can use every `/api/webhooks…` route, but can't list, create or revoke keys.
 - `POST/PUT/… /webhook/:endpoint` (ingest) and `/health` stay public.
 
+### Realtime
+
+`GET /api/stream` is a Server-Sent Events stream for the caller's account (session or API key). Each account has one `RealtimeHub` Durable Object holding its open streams. Ingest and the webhook routes publish into it after each write.
+
+| Event | Data |
+| --- | --- |
+| `ready` | stream is live (sent first) |
+| `ping` | heartbeat, every 20s |
+| `request` | `{ webhook_id, endpoint, request_id }` |
+| `webhook.created`, `webhook.updated`, `webhook.deleted` | `{ webhook_id, endpoint }` |
+
+Events are notifications only; clients refetch through the REST API, so nothing large or sensitive goes over the stream. An account keeps up to 20 open streams, and when a 21st opens, the oldest is closed. Streams are also recycled every 10 minutes. `EventSource` reconnects automatically, and the dashboard resyncs after a reconnect. The dashboard falls back to 5s polling whenever the stream isn't confirmed live.
+
+```sh
+curl -N https://hooks.procd.cc/api/stream -H "x-api-key: whk_..."
+```
+
 ### API
 
 | Method | Path | Auth |
@@ -33,6 +50,7 @@ Each app keeps its own `package.json` and lockfile, so both deploy exactly as be
 | PATCH, PUT, DELETE | `/api/webhooks/:id` | session or key |
 | GET | `/api/webhooks/:endpoint/requests` | session or key |
 | GET | `/api/webhooks/:id/stats` | session or key |
+| GET | `/api/stream` | session or key (SSE) |
 | ANY | `/webhook/:endpoint` | public (webhook secret if set) |
 
 ## Local development

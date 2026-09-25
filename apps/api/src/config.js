@@ -22,3 +22,9 @@ export const OAUTH_CALLBACK_PATH = '/api/auth/github/callback';
 
 export const API_KEY_PREFIX = 'whk_';
 export const MAX_API_KEYS_PER_USER = 20;
+
+// Realtime (SSE): open streams kept per account (tabs, CLI consumers; oldest evicted beyond this), heartbeat
+// interval, and max stream age. Streams are recycled so one whose disconnect went unreported can't linger.
+export const MAX_STREAMS_PER_USER = 20;
+export const STREAM_HEARTBEAT_MS = 20_000;
+export const STREAM_MAX_AGE_MS = 10 * 60 * 1000;

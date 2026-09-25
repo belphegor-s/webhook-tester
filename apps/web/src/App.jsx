@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { RotateCcw, Plus, Loader2, ArrowLeft, Webhook, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { useWebhooks } from './hooks/useWebhooks';
 import { useRequests } from './hooks/useRequests';
 import { useAuth } from './hooks/useAuth';
+import { useRealtime } from './hooks/useRealtime';
+import { coalesce } from './utils/coalesce';
 import { webhookUrl } from './lib/config';
 import { cn } from './lib/utils';
 
@@ -70,14 +72,19 @@ const AuthenticatedApp = ({ user, logout }) => {
     setPage: setWebhookPage,
     createWebhook: apiCreateWebhook,
     deleteWebhook: apiDeleteWebhook,
+    fetchWebhooks,
     setWebhookActive,
     updateWebhook,
   } = useWebhooks();
 
+  // Server-Sent Events drive refreshes; the handler lives in a ref so it always sees current state.
+  const onRealtimeEvent = useRef(null);
+  const live = useRealtime((event) => onRealtimeEvent.current?.(event));
+
   const [webhookToEdit, setWebhookToEdit] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { requests, loading: requestsLoading, totalPages: totalRequestPages, page: requestPage, setPage: setRequestPage, fetchRequests } = useRequests(selectedWebhook?.endpoint);
+  const { requests, loading: requestsLoading, totalPages: totalRequestPages, page: requestPage, setPage: setRequestPage, fetchRequests } = useRequests(selectedWebhook?.endpoint, { poll: !live });
 
   const handleCreateWebhook = async (formData) => {
     setIsCreating(true);
@@ -226,14 +233,53 @@ const AuthenticatedApp = ({ user, logout }) => {
     return () => window.removeEventListener('popstate', syncFromUrl);
   }, [syncFromUrl]);
 
-  // The selected webhook is a snapshot; prefer the live row so toggles are reflected immediately.
+  // Bursts of events (a flood of deliveries) collapse into one refetch per window.
+  const refetch = useRef({});
+  useEffect(() => {
+    refetch.current = {
+      webhooks: () => fetchWebhooks(false).catch(() => {}),
+      requests: () => fetchRequests(false).catch(() => {}),
+    };
+  });
+  const [scheduleWebhooks] = useState(() => coalesce(() => refetch.current.webhooks(), 400));
+  const [scheduleRequests] = useState(() => coalesce(() => refetch.current.requests(), 250));
+
+  useEffect(() => {
+    onRealtimeEvent.current = (event) => {
+      switch (event.type) {
+        case 'resync':
+          scheduleWebhooks();
+          if (selectedWebhook) scheduleRequests();
+          break;
+        case 'request':
+          // Counts and "last request" only show on the list; the open webhook refreshes its first page.
+          if (!selectedWebhook) scheduleWebhooks();
+          else if (event.endpoint === selectedWebhook.endpoint && requestPage === 0) scheduleRequests();
+          break;
+        case 'webhook.created':
+        case 'webhook.updated':
+          scheduleWebhooks();
+          break;
+        case 'webhook.deleted':
+          scheduleWebhooks();
+          // Deleted elsewhere (another tab or an API key) while open here. Our own delete is handled by confirmDeleteWebhook.
+          if (selectedWebhook?.id === event.webhook_id && webhookToDelete?.id !== event.webhook_id) {
+            handleBackToWebhooks();
+            showToast(`${selectedWebhook.name} was deleted`);
+          }
+          break;
+      }
+    };
+  });
+
+  // The selected webhook is a snapshot; prefer the live row so toggles and remote edits are reflected immediately.
   const current = selectedWebhook ? (webhooks.find((w) => w.id === selectedWebhook.id) ?? selectedWebhook) : null;
   const isActive = Boolean(current?.is_active);
   const isLive = current && isActive && requestPage === 0;
 
   return (
     <div className="relative isolate flex min-h-dvh flex-col overflow-x-clip">
-      <Navbar selectedWebhook={selectedWebhook} onHome={handleBackToWebhooks} user={user} onOpenApiKeys={() => setShowApiKeys(true)} onLogout={logout} />
+      <Navbar selectedWebhook={current} onHome={handleBackToWebhooks} user={user} onOpenApiKeys={() => setShowApiKeys(true)} onLogout={logout} />
 
       <main className="flex-1 pt-8 sm:pt-12">
         <Container>
@@ -297,9 +343,9 @@ const AuthenticatedApp = ({ user, logout }) => {
                     />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{selectedWebhook.name}</h1>
+                        <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{current.name}</h1>
                         {isLive && (
-                          <Badge variant="outline" className="gap-1.5" title="Auto-refreshing every 5 seconds">
+                          <Badge variant="outline" className="gap-1.5" title={live ? 'Receiving requests in real time' : 'Auto-refreshing every 5 seconds'}>
                             <span className="relative flex size-1.5">
                               <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
                               <span className="relative inline-flex size-1.5 rounded-full bg-success" />
@@ -308,7 +354,7 @@ const AuthenticatedApp = ({ user, logout }) => {
                           </Badge>
                         )}
                       </div>
-                      {selectedWebhook.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{selectedWebhook.description}</p>}
+                      {current.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{current.description}</p>}
                     </div>
                   </div>
 

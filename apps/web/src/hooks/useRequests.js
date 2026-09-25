@@ -3,7 +3,8 @@ import { authFetch } from '../lib/auth';
 
 const API_BASE = '/api';
 
-export function useRequests(webhookEndpoint) {
+// `poll` refreshes page one every 5s; turned off while the realtime stream is live.
+export function useRequests(webhookEndpoint, { poll = true } = {}) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
@@ -36,7 +37,7 @@ export function useRequests(webhookEndpoint) {
   }, [fetchRequests]);
 
   useEffect(() => {
-    if (!webhookEndpoint || page !== 0) {
+    if (!webhookEndpoint || page !== 0 || !poll) {
       if (pollingInterval.current) clearInterval(pollingInterval.current);
       return;
     }
@@ -48,7 +49,7 @@ export function useRequests(webhookEndpoint) {
     return () => {
       if (pollingInterval.current) clearInterval(pollingInterval.current);
     };
-  }, [webhookEndpoint, page, fetchRequests]);
+  }, [webhookEndpoint, page, poll, fetchRequests]);
 
   return {
     requests,

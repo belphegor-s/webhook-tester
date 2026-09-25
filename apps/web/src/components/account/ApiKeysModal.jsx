@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { KeyRound, Loader2, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogHeader, DialogBody, DialogTitle, DialogDescription } from '../ui/Dialog';
@@ -11,6 +11,10 @@ import { useApiKeys } from '../../hooks/useApiKeys';
 import { WEBHOOK_BASE } from '../../lib/config';
 import { formatRelative } from '../../utils/formatRelative';
 import { formatUserDate } from '../../utils/formatUserDate';
+
+const CodeBlock = lazy(() => import('../ui/CodeBlock').then((m) => ({ default: m.CodeBlock })));
+
+const usageStyle = { padding: '0.75rem 2.75rem 0.75rem 0.875rem' };
 
 // Lists, creates and revokes the signed-in user's API keys. A new key's secret is shown once, right after creation.
 export function ApiKeysModal({ open, onOpenChange }) {
@@ -155,7 +159,9 @@ export function ApiKeysModal({ open, onOpenChange }) {
         <div className="space-y-2">
           <p className="text-sm font-medium">Usage</p>
           <div className="relative rounded-lg border bg-subtle">
-            <pre className="overflow-x-auto px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed text-muted-foreground">{example}</pre>
+            <Suspense fallback={<pre className="overflow-x-auto px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed text-muted-foreground">{example}</pre>}>
+              <CodeBlock code={example} language="bash" style={usageStyle} />
+            </Suspense>
             <CopyButton value={example} label="Copy command" className="absolute top-1.5 right-1.5 size-7" />
           </div>
           <p className="text-xs text-muted-foreground">

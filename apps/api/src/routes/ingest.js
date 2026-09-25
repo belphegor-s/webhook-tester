@@ -4,6 +4,7 @@ import { errorResponse, jsonResponse } from '../lib/http.js';
 import { findWebhookByEndpoint } from '../db/webhooks.js';
 import { insertRequest } from '../db/requests.js';
 import { recordSuccess } from '../db/stats.js';
+import { publish } from '../lib/realtime.js';
 
 // Public delivery endpoint, mounted under /webhook
 const ingest = new Hono();
@@ -31,7 +32,7 @@ ingest.all('/:endpoint', async (c) => {
 		const body = await c.req.text();
 		const responseTime = Date.now() - c.executionCtx.timestamp;
 
-		await insertRequest(DB, {
+		const requestId = await insertRequest(DB, {
 			webhookId: webhook.id,
 			method,
 			headers: Object.fromEntries(c.req.raw.headers),
@@ -42,6 +43,7 @@ ingest.all('/:endpoint', async (c) => {
 			responseTime,
 		});
 		await recordSuccess(DB, webhook.id, new Date().toISOString().split('T')[0]);
+		publish(c, webhook.user_id, { type: 'request', webhook_id: webhook.id, endpoint: webhook.endpoint, request_id: requestId });
 
 		return jsonResponse({
 			message: 'Webhook received successfully',

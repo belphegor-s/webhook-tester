@@ -10,8 +10,9 @@ export function useWebhooks() {
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
 
-  const fetchWebhooks = useCallback(async () => {
-    setLoading(true);
+  // showLoader=false refreshes in place (realtime updates) without flashing skeletons.
+  const fetchWebhooks = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     try {
       const response = await authFetch(`${API_BASE}/webhooks?limit=${limit}&offset=${page * limit}`);
       const data = await response.json();
@@ -21,7 +22,7 @@ export function useWebhooks() {
       console.error('Failed to fetch webhooks:', error);
       throw error;
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   }, [page, limit]);
 

@@ -21,6 +21,21 @@
 			"migrations_dir": "migrations",
 		},
 	],
+	// Per-user realtime hub fanning out Server-Sent Events (src/realtime/hub.js).
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "REALTIME",
+				"class_name": "RealtimeHub",
+			},
+		],
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["RealtimeHub"],
+		},
+	],
 	"kv_namespaces": [
 		{
 			"binding": "WEBHOOK_CACHE",

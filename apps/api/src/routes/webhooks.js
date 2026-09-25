@@ -4,6 +4,7 @@ import { paginated, parsePagination } from '../lib/pagination.js';
 import { parseId, validateCreate, validateUpdate } from '../lib/validate.js';
 import { generateEndpoint } from '../lib/endpoint.js';
 import { sanitizeWebhook } from '../lib/sanitize.js';
+import { publish } from '../lib/realtime.js';
 import { countWebhooks, deleteWebhook, findUserWebhookByEndpoint, insertWebhook, listWebhooks, updateWebhook } from '../db/webhooks.js';
 
 // Mounted under /api/webhooks
@@ -30,6 +31,7 @@ webhooks.post('/', async (c) => {
 
 	try {
 		const webhook = await insertWebhook(c.env.DB, c.get('user').id, { ...fields, endpoint: generateEndpoint() });
+		publish(c, webhook.user_id, { type: 'webhook.created', webhook_id: webhook.id, endpoint: webhook.endpoint });
 		return jsonResponse(sanitizeWebhook(webhook), 201);
 	} catch (err) {
 		console.error('create webhook', err);
@@ -62,6 +64,7 @@ const update = async (c) => {
 	try {
 		const webhook = await updateWebhook(c.env.DB, c.get('user').id, id, fields);
 		if (!webhook) return errorResponse('Webhook not found', 404);
+		publish(c, webhook.user_id, { type: 'webhook.updated', webhook_id: webhook.id, endpoint: webhook.endpoint });
 		return jsonResponse(sanitizeWebhook(webhook));
 	} catch (err) {
 		console.error('update webhook', err);
@@ -78,6 +81,7 @@ webhooks.delete('/:id', async (c) => {
 
 	try {
 		const deleted = await deleteWebhook(c.env.DB, c.get('user').id, id);
+		if (deleted) publish(c, c.get('user').id, { type: 'webhook.deleted', webhook_id: id });
 		return deleted ? jsonResponse({ message: 'Webhook deleted successfully' }) : errorResponse('Webhook not found', 404);
 	} catch (err) {
 		console.error('delete webhook', err);

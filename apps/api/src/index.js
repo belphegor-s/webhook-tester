@@ -6,6 +6,7 @@ import { authenticate } from './middleware/auth.js';
 import health from './routes/health.js';
 import auth from './routes/auth.js';
 import keys from './routes/keys.js';
+import stream from './routes/stream.js';
 import webhooks from './routes/webhooks.js';
 import requests from './routes/requests.js';
 import stats from './routes/stats.js';
@@ -20,13 +21,14 @@ app.use(
 // API responses carry per-user data and pass through the dashboard's proxy: never cache them.
 app.use('/api/*', async (c, next) => {
 	await next();
-	c.res.headers.set('Cache-Control', 'no-store');
+	if (!c.res.headers.has('Cache-Control')) c.res.headers.set('Cache-Control', 'no-store');
 });
 app.use('*', authenticate);
 
 app.route('/health', health);
 app.route('/api/auth', auth);
 app.route('/api/keys', keys);
+app.route('/api/stream', stream);
 // Nested resources are registered before the generic /:endpoint and /:id handlers.
 app.route('/api/webhooks/:endpoint/requests', requests);
 app.route('/api/webhooks/:id/stats', stats);
@@ -39,4 +41,5 @@ app.onError((err) => {
 	return errorResponse('Internal server error', 500);
 });
 
+export { RealtimeHub } from './realtime/hub.js';
 export default app;

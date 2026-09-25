@@ -17,6 +17,7 @@ export const listRequests = async (DB, webhookId, { limit, offset }) => {
 	return results;
 };
 
+// Resolves with the new request id.
 export const insertRequest = (DB, { webhookId, method, headers, body, query, ip, userAgent, responseTime }) =>
 	DB.prepare(
 		`
@@ -25,4 +26,5 @@ export const insertRequest = (DB, { webhookId, method, headers, body, query, ip,
 		`,
 	)
 		.bind(webhookId, method, JSON.stringify(headers), body, JSON.stringify(query), ip, userAgent, responseTime)
-		.run();
+		.run()
+		.then(({ meta }) => meta?.last_row_id ?? null);
