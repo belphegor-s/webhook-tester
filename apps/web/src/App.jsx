@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { RotateCcw, Plus, Loader2, ArrowLeft, Webhook, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -27,6 +27,9 @@ import { CopyButton } from './components/ui/CopyButton';
 import { Pagination } from './components/ui/Pagination';
 import { Switch } from './components/ui/Switch';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/Dialog';
+
+// Admin-only screen: kept out of the main bundle.
+const AdminView = lazy(() => import('./components/admin/AdminView').then((m) => ({ default: m.AdminView })));
 
 const pageTransition = { duration: 0.25, ease: [0.16, 1, 0.3, 1] };
 
@@ -58,6 +61,9 @@ const showToast = (message, type = 'info') => {
 const AuthenticatedApp = ({ user, logout }) => {
   const [selectedWebhook, setSelectedWebhook] = useState(null);
   const [showApiKeys, setShowApiKeys] = useState(false);
+  // 'webhooks' or 'admin' (?view=admin; admins only, and the API enforces it independently).
+  const viewFromUrl = useCallback(() => (user.is_admin && new URL(window.location).searchParams.get('view') === 'admin' ? 'admin' : 'webhooks'), [user.is_admin]);
+  const [view, setView] = useState(viewFromUrl);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [webhookToDelete, setWebhookToDelete] = useState(null);
@@ -181,7 +187,24 @@ const AuthenticatedApp = ({ user, logout }) => {
     window.history.pushState({ wh: webhook.endpoint, rp: 1 }, '', url);
   };
 
+  const openAdmin = () => {
+    setSelectedWebhook(null);
+    setView('admin');
+    window.scrollTo({ top: 0 });
+    const url = new URL(window.location.pathname, window.location.origin);
+    url.searchParams.set('view', 'admin');
+    window.history.pushState({ view: 'admin' }, '', url);
+  };
+
   const handleBackToWebhooks = () => {
+    if (view === 'admin') {
+      setView('webhooks');
+      const url = new URL(window.location);
+      url.searchParams.delete('view');
+      url.searchParams.set('page', webhookPage + 1);
+      window.history.pushState({ p: webhookPage + 1 }, '', url);
+      return;
+    }
     if (!selectedWebhook) return;
     setSelectedWebhook(null);
     const url = new URL(window.location);
@@ -225,6 +248,13 @@ const AuthenticatedApp = ({ user, logout }) => {
       }
     }
   }, [webhooks, setRequestPage, setWebhookPage]);
+
+  // Back/forward between the admin view and the rest of the app.
+  useEffect(() => {
+    const onPop = () => setView(viewFromUrl());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [viewFromUrl]);
 
   // Initial load and back/forward buttons
   useEffect(() => {
@@ -279,12 +309,31 @@ const AuthenticatedApp = ({ user, logout }) => {
 
   return (
     <div className="relative isolate flex min-h-dvh flex-col overflow-x-clip">
-      <Navbar selectedWebhook={current} onHome={handleBackToWebhooks} user={user} onOpenApiKeys={() => setShowApiKeys(true)} onLogout={logout} />
+      <Navbar
+        crumb={view === 'admin' ? 'Admin' : current?.name}
+        onHome={handleBackToWebhooks}
+        user={user}
+        onOpenApiKeys={() => setShowApiKeys(true)}
+        onOpenAdmin={openAdmin}
+        onLogout={logout}
+      />
 
       <main className="flex-1 pt-8 sm:pt-12">
         <Container>
           <AnimatePresence mode="wait" initial={false}>
-            {!selectedWebhook ? (
+            {view === 'admin' ? (
+              <motion.section key="admin-view" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={pageTransition} className="w-full min-w-0">
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center py-24">
+                      <Loader2 className="size-5 animate-spin text-muted-foreground" aria-label="Loading" />
+                    </div>
+                  }
+                >
+                  <AdminView currentUserId={user.id} />
+                </Suspense>
+              </motion.section>
+            ) : !selectedWebhook ? (
               <motion.section key="webhooks-view" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={pageTransition} className="w-full">
                 <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div className="min-w-0">

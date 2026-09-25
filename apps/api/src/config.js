@@ -20,6 +20,15 @@ export const OAUTH_STATE_COOKIE = 'wt_oauth_state';
 export const OAUTH_STATE_TTL_SECONDS = 60 * 10;
 export const OAUTH_CALLBACK_PATH = '/api/auth/github/callback';
 
+// Admin access is granted by verified GitHub email (ADMIN_EMAILS var, comma-separated).
+export const isAdmin = (env, user) =>
+	Boolean(user?.email) &&
+	(env?.ADMIN_EMAILS || '')
+		.split(',')
+		.map((e) => e.trim().toLowerCase())
+		.filter(Boolean)
+		.includes(user.email.toLowerCase());
+
 export const API_KEY_PREFIX = 'whk_';
 export const MAX_API_KEYS_PER_USER = 20;
 

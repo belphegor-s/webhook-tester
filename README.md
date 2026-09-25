@@ -18,6 +18,12 @@ Each app keeps its own `package.json` and lockfile, so both deploy exactly as be
 - API keys (`whk_…`) are created in the dashboard (account menu → API keys). The full key is shown once; only its hash is stored. Send it as `x-api-key: whk_…` or `Authorization: Bearer whk_…`. Keys can use every `/api/webhooks…` route, but can't list, create or revoke keys.
 - `POST/PUT/… /webhook/:endpoint` (ingest) and `/health` stay public.
 
+### Admin
+
+Accounts whose verified GitHub email is listed in `ADMIN_EMAILS` (comma-separated var in `apps/api/wrangler.jsonc`, case-insensitive) get an **Admin** item in the account menu (`/?view=admin`): platform totals, requests per day for the last 14 days, and a searchable user list with each account's webhooks, requests, API keys and activity. It is read-only.
+
+`/api/admin/*` requires a dashboard session from an admin account; API keys never grant admin, and everyone else gets `404`.
+
 ### Realtime
 
 `GET /api/stream` is a Server-Sent Events stream for the caller's account (session or API key). Each account has one `RealtimeHub` Durable Object holding its open streams. Ingest and the webhook routes publish into it after each write.
@@ -51,6 +57,7 @@ curl -N https://hooks.procd.cc/api/stream -H "x-api-key: whk_..."
 | GET | `/api/webhooks/:endpoint/requests` | session or key |
 | GET | `/api/webhooks/:id/stats` | session or key |
 | GET | `/api/stream` | session or key (SSE) |
+| GET | `/api/admin/overview`, `/api/admin/users?q=` | admin session |
 | ANY | `/webhook/:endpoint` | public (webhook secret if set) |
 
 ## Local development

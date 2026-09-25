@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyRound, LogOut } from 'lucide-react';
+import { KeyRound, LogOut, Shield } from 'lucide-react';
 import { Container } from './Container';
 import { Logo } from './Logo';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/DropdownMenu';
@@ -21,19 +21,20 @@ const UserAvatar = ({ user, className }) => {
   return <span className={cn(base, 'flex items-center justify-center text-xs font-medium uppercase')}>{(user.name || user.login || '?').charAt(0)}</span>;
 };
 
-const Navbar = ({ selectedWebhook, onHome, user, onOpenApiKeys, onLogout }) => {
+// `crumb` is the current page's title after the logo (a webhook name, "Admin"), or empty on the webhook list.
+const Navbar = ({ crumb, onHome, user, onOpenApiKeys, onOpenAdmin, onLogout }) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <Container className="flex h-14 items-center justify-between gap-3">
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5">
           <button type="button" onClick={onHome} className="flex shrink-0 items-center rounded-md p-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50" aria-label="All webhooks">
-            <Logo textClassName={selectedWebhook ? 'hidden sm:inline' : undefined} />
+            <Logo textClassName={crumb ? 'hidden sm:inline' : undefined} />
           </button>
-          {selectedWebhook && (
+          {crumb && (
             <>
               <Slash />
-              <span className="truncate text-sm font-medium" title={selectedWebhook.name}>
-                {selectedWebhook.name}
+              <span className="truncate text-sm font-medium" title={crumb}>
+                {crumb}
               </span>
             </>
           )}
@@ -64,6 +65,12 @@ const Navbar = ({ selectedWebhook, onHome, user, onOpenApiKeys, onLogout }) => {
               <KeyRound />
               API keys
             </DropdownMenuItem>
+            {user.is_admin && (
+              <DropdownMenuItem onSelect={onOpenAdmin}>
+                <Shield />
+                Admin
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onLogout}>
               <LogOut />

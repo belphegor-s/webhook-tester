@@ -7,6 +7,7 @@ import health from './routes/health.js';
 import auth from './routes/auth.js';
 import keys from './routes/keys.js';
 import stream from './routes/stream.js';
+import admin from './routes/admin.js';
 import webhooks from './routes/webhooks.js';
 import requests from './routes/requests.js';
 import stats from './routes/stats.js';
@@ -29,6 +30,7 @@ app.route('/health', health);
 app.route('/api/auth', auth);
 app.route('/api/keys', keys);
 app.route('/api/stream', stream);
+app.route('/api/admin', admin);
 // Nested resources are registered before the generic /:endpoint and /:id handlers.
 app.route('/api/webhooks/:endpoint/requests', requests);
 app.route('/api/webhooks/:id/stats', stats);

@@ -12,6 +12,8 @@
 	// Secrets (not in this file): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET via `wrangler secret put`.
 	"vars": {
 		"APP_URL": "https://webhooks.procd.cc",
+		// Comma-separated verified GitHub emails with access to the admin view.
+		"ADMIN_EMAILS": "ayush2162002@gmail.com",
 	},
 	"d1_databases": [
 		{

@@ -1,5 +1,5 @@
 import { deleteCookie, getCookie } from 'hono/cookie';
-import { API_KEY_PREFIX, SESSION_COOKIE, appUrl } from '../config.js';
+import { API_KEY_PREFIX, SESSION_COOKIE, appUrl, isAdmin } from '../config.js';
 import { sha256Hex } from '../lib/crypto.js';
 import { errorResponse } from '../lib/http.js';
 import { sessionCookieOptions } from '../lib/session.js';
@@ -58,6 +58,12 @@ export const authenticate = async (c, next) => {
 
 	c.set('user', user);
 	c.set('authType', 'session');
+	return next();
+};
+
+// Admin endpoints need a dashboard session (never an API key) from an ADMIN_EMAILS account.
+export const requireAdmin = async (c, next) => {
+	if (c.get('authType') !== 'session' || !isAdmin(c.env, c.get('user'))) return errorResponse('Not found', 404);
 	return next();
 };
 

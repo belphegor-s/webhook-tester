@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { OAUTH_CALLBACK_PATH, OAUTH_STATE_COOKIE, OAUTH_STATE_TTL_SECONDS, SESSION_COOKIE, SESSION_TTL_SECONDS, appUrl } from '../config.js';
+import { isAdmin, OAUTH_CALLBACK_PATH, OAUTH_STATE_COOKIE, OAUTH_STATE_TTL_SECONDS, SESSION_COOKIE, SESSION_TTL_SECONDS, appUrl } from '../config.js';
 import { randomToken, sha256Hex, timingSafeCompare } from '../lib/crypto.js';
 import { authorizeUrl, fetchProfile, revokeToken } from '../lib/github.js';
 import { errorResponse } from '../lib/http.js';
@@ -88,7 +88,11 @@ auth.get('/github/callback', async (c) => {
 	}
 });
 
-auth.get('/me', (c) => c.json({ user: c.get('user'), auth_type: c.get('authType') }));
+auth.get('/me', (c) => {
+	const user = c.get('user');
+	const authType = c.get('authType');
+	return c.json({ user: { ...user, is_admin: authType === 'session' && isAdmin(c.env, user) }, auth_type: authType });
+});
 
 auth.post('/logout', async (c) => {
 	const token = getCookie(c, SESSION_COOKIE);
