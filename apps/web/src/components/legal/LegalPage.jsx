@@ -8,8 +8,17 @@ import { CONTACT_EMAIL, LEGAL_PAGES, LEGAL_UPDATED, legalPageFromPath } from './
 
 const ease = [0.16, 1, 0.3, 1];
 
-const Tabs = ({ current, onNavigate }) => (
-  <nav aria-label="Legal" className="inline-flex items-center gap-0.5 rounded-full border bg-background p-0.5">
+const ORDER = Object.keys(LEGAL_PAGES);
+
+// Content slides in from the side of the tab being moved to.
+const slide = {
+  enter: (dir) => ({ opacity: 0, x: dir * 24 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir) => ({ opacity: 0, x: dir * -24 }),
+};
+
+const Tabs =({ current, onNavigate }) => (
+  <nav aria-label="Legal" className="isolate inline-flex items-center gap-0.5 rounded-full border bg-background p-0.5">
     {Object.values(LEGAL_PAGES).map((page) => {
       const active = page.path === current.path;
       return (
@@ -27,7 +36,7 @@ const Tabs = ({ current, onNavigate }) => (
             active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
           )}
         >
-          {active && <motion.span layoutId="legal-pill" className="absolute inset-0 -z-10 rounded-full bg-muted" transition={{ duration: 0.3, ease }} />}
+          {active && <motion.span layoutId="legal-pill" className="absolute inset-0 -z-10 rounded-full bg-muted" transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }} />}
           {page.label}
         </a>
       );
@@ -37,8 +46,9 @@ const Tabs = ({ current, onNavigate }) => (
 
 // Public, signed-out-friendly page for /terms and /privacy. Switching between the two stays client-side.
 export function LegalPage({ initialPath }) {
-  const [path, setPath] = useState(initialPath);
+  const [[path, dir], setNav] = useState([initialPath, 0]);
   const page = legalPageFromPath(path);
+  const setPath = (next) => setNav(([prev]) => [next, Math.sign(ORDER.indexOf(next.replace(/\/+$/, '')) - ORDER.indexOf(prev.replace(/\/+$/, '')))]);
 
   useEffect(() => {
     document.title = `${page.label} · Webhook Tester`;
@@ -57,7 +67,7 @@ export function LegalPage({ initialPath }) {
     if (next === path) return;
     window.history.pushState(null, '', next);
     setPath(next);
-    window.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -77,11 +87,19 @@ export function LegalPage({ initialPath }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-12 pb-20 sm:px-6 sm:pt-16">
+      <main className="mx-auto w-full max-w-2xl flex-1 overflow-x-clip px-4 pt-12 pb-20 sm:px-6 sm:pt-16">
         <Tabs current={page} onNavigate={navigate} />
 
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.article key={page.path} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3, ease }}>
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <motion.article
+            key={page.path}
+            custom={dir}
+            variants={slide}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease }}
+          >
             <h1 className="mt-8 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{page.title}</h1>
             <p className="mt-3 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">Last updated {LEGAL_UPDATED}</p>
             <p className="mt-8 text-[15px] leading-7 text-pretty text-muted-foreground">{page.intro}</p>
