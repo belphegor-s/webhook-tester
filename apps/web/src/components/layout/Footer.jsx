@@ -12,10 +12,10 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-4 sm:gap-5">
           <nav aria-label="Legal" className="flex items-center gap-4">
-            <a href="/terms" className="transition-colors hover:text-foreground">
+            <a href="/terms" className="underline decoration-dashed decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">
               Terms
             </a>
-            <a href="/privacy" className="transition-colors hover:text-foreground">
+            <a href="/privacy" className="underline decoration-dashed decoration-muted-foreground/50 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">
               Privacy
             </a>
           </nav>
