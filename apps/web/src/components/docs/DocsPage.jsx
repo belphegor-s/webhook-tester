@@ -95,6 +95,8 @@ const Panel = ({ header, children, className }) => (
 const RequestSample = ({ endpoint, lang, onLang }) => {
   const language = LANGUAGES.find((l) => l.id === lang);
   const code = snippet(lang, endpoint.example);
+  // Reserve room for the longest language so switching tabs doesn't resize the panel (12px text, 1.6 line height).
+  const lines = Math.max(...LANGUAGES.map((l) => snippet(l.id, endpoint.example).split('\n').length));
   return (
     <Panel
       header={
@@ -104,7 +106,9 @@ const RequestSample = ({ endpoint, lang, onLang }) => {
         </>
       }
     >
-      <Code code={code} language={language.grammar} />
+      <div style={{ minHeight: `min(calc(${lines} * 1.6 * 12px + 1.75rem), 26rem)` }}>
+        <Code code={code} language={language.grammar} />
+      </div>
     </Panel>
   );
 };
@@ -372,12 +376,14 @@ export function DocsPage() {
   const [lang, setLang] = useState(readLang);
   const active = useActiveSection();
 
-  // Samples change height with the language, which would shift the page. Remember where the clicked tab sat on
-  // screen and scroll it back there once the new samples are laid out.
+  // Samples can still change height with the language (long lines wrap differently). Keep the clicked sample's
+  // section where it was on screen once the new samples are laid out.
   const anchor = useRef(null);
   const changeLang = (next, el) => {
     if (next === lang) return;
-    if (el) anchor.current = { el, top: el.getBoundingClientRect().top };
+    // Measure the enclosing section: the sample panel itself is sticky on wide screens, so it doesn't show the shift.
+    const target = el?.closest('section');
+    if (target) anchor.current = { el: target, top: target.getBoundingClientRect().top };
     setLang(next);
     try {
       localStorage.setItem(LANG_STORAGE, next);
