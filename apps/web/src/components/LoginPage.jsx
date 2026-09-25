@@ -80,6 +80,17 @@ export function LoginPage({ error: sessionError }) {
               </p>
             )}
             <p className="text-center text-xs text-muted-foreground">Only accounts with a verified email address can sign in.</p>
+            <p className="text-center text-[11px] leading-relaxed text-muted-foreground/70">
+              By continuing, you agree to the{' '}
+              <a href="/terms" className="underline decoration-border underline-offset-2 transition-colors hover:text-foreground">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="/privacy" className="underline decoration-border underline-offset-2 transition-colors hover:text-foreground">
+                Privacy Policy
+              </a>
+              .
+            </p>
           </div>
         </motion.div>
       </main>
