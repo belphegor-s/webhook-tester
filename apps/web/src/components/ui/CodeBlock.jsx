@@ -1,13 +1,17 @@
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
 import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import oneDark from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark';
 import oneLight from 'react-syntax-highlighter/dist/esm/styles/prism/one-light';
 import { useTheme } from '../../hooks/useTheme';
 
 // Only the grammars in use are registered, keeping this lazily loaded chunk small.
 SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('javascript', javascript);
 SyntaxHighlighter.registerLanguage('json', json);
+SyntaxHighlighter.registerLanguage('python', python);
 
 // Long unbroken tokens (URLs, keys, base64) wrap too, so code never scrolls sideways.
 const codeStyle = { fontFamily: 'var(--font-mono)', background: 'transparent', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word' };

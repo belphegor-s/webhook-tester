@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { KeyRound, Loader2, Plus, Trash2, TriangleAlert } from 'lucide-react';
+import { ArrowUpRight, KeyRound, Loader2, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogHeader, DialogBody, DialogTitle, DialogDescription } from '../ui/Dialog';
 import { Button } from '../ui/Button';
@@ -9,6 +9,8 @@ import { Skeleton } from '../ui/Skeleton';
 import { CopyButton } from '../ui/CopyButton';
 import { useApiKeys } from '../../hooks/useApiKeys';
 import { WEBHOOK_BASE } from '../../lib/config';
+import { ENDPOINTS } from '../docs/reference';
+import { MethodBadge } from '../docs/MethodBadge';
 import { formatRelative } from '../../utils/formatRelative';
 import { formatUserDate } from '../../utils/formatUserDate';
 
@@ -157,7 +159,7 @@ export function ApiKeysModal({ open, onOpenChange }) {
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Usage</p>
+          <p className="text-sm font-medium">Quick test</p>
           <div className="relative rounded-lg border bg-subtle">
             <Suspense fallback={<pre className="px-3.5 py-3 pr-11 font-mono text-xs leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap text-muted-foreground">{example}</pre>}>
               <CodeBlock code={example} language="bash" style={usageStyle} />
@@ -167,6 +169,37 @@ export function ApiKeysModal({ open, onOpenChange }) {
           <p className="text-xs text-muted-foreground">
             Also accepted as <code className="font-mono">Authorization: Bearer whk_…</code>. Keys can&apos;t manage other keys.
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-sm font-medium">Endpoints</p>
+            <a href="/docs" target="_blank" rel="noopener" className="group inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Full API reference
+              <ArrowUpRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
+          <ul className="divide-y overflow-hidden rounded-lg border">
+            {ENDPOINTS.map((endpoint) => (
+              <li key={endpoint.id}>
+                <a
+                  href={`/docs#${endpoint.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="group flex items-center gap-3 px-3 py-2.5 transition-colors outline-none hover:bg-accent/60 focus-visible:bg-accent/60"
+                >
+                  <MethodBadge method={endpoint.method} className="w-14 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-mono text-xs" title={endpoint.path}>
+                      {endpoint.path}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">{endpoint.title}</span>
+                  </span>
+                  <ArrowUpRight className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </DialogBody>
     </Dialog>

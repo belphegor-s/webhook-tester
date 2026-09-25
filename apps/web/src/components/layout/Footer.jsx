@@ -11,7 +11,10 @@ export function Footer() {
           <span>Webhook Tester</span>
         </div>
         <div className="flex items-center gap-4 sm:gap-5">
-          <nav aria-label="Legal" className="flex items-center gap-4">
+          <nav aria-label="Resources" className="flex items-center gap-4">
+            <a href="/docs" className="text-foreground underline decoration-dashed decoration-foreground/60 underline-offset-4 transition-colors hover:decoration-foreground">
+              API
+            </a>
             <a href="/terms" className="text-foreground underline decoration-dashed decoration-foreground/60 underline-offset-4 transition-colors hover:decoration-foreground">
               Terms
             </a>
