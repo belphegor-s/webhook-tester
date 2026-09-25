@@ -24,7 +24,10 @@ export function ThemeSwitcher({ className, layoutId = 'theme-pill' }) {
             aria-checked={active}
             aria-label={label}
             title={label}
-            onClick={() => setTheme(value)}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setTheme(value, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+            }}
             className={cn(
               'relative flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               active && 'text-foreground',

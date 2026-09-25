@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowUpRight, KeyRound, Lock, Terminal } from 'lucide-react';
 import { Logo } from '../layout/Logo';
@@ -10,7 +10,6 @@ import { MethodBadge } from './MethodBadge';
 import { API_BASE, ENDPOINTS, ERRORS, GROUPS, KEY_ENV, LANGUAGES, METHOD_TEXT, responseText, snippet } from './reference';
 
 const CodeBlock = lazy(() => import('../ui/CodeBlock').then((m) => ({ default: m.CodeBlock })));
-
 
 const LANG_STORAGE = 'docs-lang';
 
@@ -73,7 +72,7 @@ const LangTabs = ({ lang, onChange, id }) => (
         type="button"
         role="tab"
         aria-selected={lang === l.id}
-        onClick={() => onChange(l.id)}
+        onClick={(e) => onChange(l.id, e.currentTarget)}
         className={cn(
           'relative px-2.5 py-2.5 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:text-foreground',
           lang === l.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
@@ -373,7 +372,12 @@ export function DocsPage() {
   const [lang, setLang] = useState(readLang);
   const active = useActiveSection();
 
-  const changeLang = (next) => {
+  // Samples change height with the language, which would shift the page. Remember where the clicked tab sat on
+  // screen and scroll it back there once the new samples are laid out.
+  const anchor = useRef(null);
+  const changeLang = (next, el) => {
+    if (next === lang) return;
+    if (el) anchor.current = { el, top: el.getBoundingClientRect().top };
     setLang(next);
     try {
       localStorage.setItem(LANG_STORAGE, next);
@@ -381,6 +385,24 @@ export function DocsPage() {
       // Storage blocked: the choice just won't persist.
     }
   };
+
+  useLayoutEffect(() => {
+    const saved = anchor.current;
+    anchor.current = null;
+    if (!saved?.el.isConnected) return;
+    const delta = saved.el.getBoundingClientRect().top - saved.top;
+    if (delta) window.scrollBy({ top: delta, behavior: 'instant' });
+  }, [lang]);
+
+  // Smooth in-page jumps for the sidebar and section links, only while the docs are open.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const root = document.documentElement;
+    root.style.scrollBehavior = 'smooth';
+    return () => {
+      root.style.scrollBehavior = '';
+    };
+  }, []);
 
   useEffect(() => {
     document.title = 'API reference · Webhook Tester';

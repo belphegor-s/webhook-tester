@@ -158,6 +158,46 @@
     color 200ms ease !important;
 }
 
+/* Theme ripple: the new theme spreads from the clicked control like a pebble dropped in water. The leading edge
+   is soft, and three fading bands run ahead of it as the outgoing waves. Driven by ThemeProvider's ripple(). */
+@property --ripple-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes theme-ripple {
+  from {
+    --ripple-r: 0px;
+  }
+  to {
+    --ripple-r: var(--ripple-max);
+  }
+}
+
+.theme-ripple::view-transition-old(root),
+.theme-ripple::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-ripple::view-transition-new(root) {
+  --ring: radial-gradient(
+    circle at var(--ripple-x) var(--ripple-y),
+    #000 calc(var(--ripple-r) - 120px),
+    rgb(0 0 0 / 0.55) calc(var(--ripple-r) - 96px),
+    rgb(0 0 0 / 0.85) calc(var(--ripple-r) - 84px),
+    rgb(0 0 0 / 0.3) calc(var(--ripple-r) - 64px),
+    rgb(0 0 0 / 0.5) calc(var(--ripple-r) - 50px),
+    rgb(0 0 0 / 0.12) calc(var(--ripple-r) - 30px),
+    rgb(0 0 0 / 0.22) calc(var(--ripple-r) - 18px),
+    transparent var(--ripple-r)
+  );
+  -webkit-mask-image: var(--ring);
+  mask-image: var(--ring);
+  animation: theme-ripple 900ms cubic-bezier(0.33, 0.9, 0.35, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
