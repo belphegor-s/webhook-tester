@@ -9,6 +9,7 @@ const RETRY_AFTER_CLOSE_MS = 15_000;
 // Subscribes to /api/stream (Server-Sent Events). Calls onEvent(event) for every event, plus
 // { type: 'resync' } after a reconnect so callers can catch up on anything missed while disconnected.
 // Returns true only while events are confirmed to be flowing; callers fall back to polling otherwise.
+// Same-origin `/api/stream` goes through the dashboard's proxy, so the session cookie authenticates it.
 export function useRealtime(onEvent) {
   const [live, setLive] = useState(false);
   const handler = useRef(onEvent);
