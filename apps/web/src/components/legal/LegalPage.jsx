@@ -78,7 +78,7 @@ export function LegalPage({ initialPath }) {
             <Logo />
           </a>
           <a
-            href="/"
+            href="/app"
             className="group inline-flex items-center gap-1.5 rounded-md text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />

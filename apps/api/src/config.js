@@ -3,6 +3,9 @@ export const DEFAULT_APP_URL = 'https://webhooks.procd.cc';
 
 export const appUrl = (env) => (env?.APP_URL || DEFAULT_APP_URL).replace(/\/+$/, '');
 
+// The dashboard's path on APP_URL; "/" is the public landing page.
+export const DASHBOARD_PATH = '/app';
+
 export const CORS_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 export const CORS_HEADERS = ['Content-Type', 'Authorization', 'x-api-key'];
 export const corsOrigins = (env) => ['http://localhost:5173', appUrl(env)];

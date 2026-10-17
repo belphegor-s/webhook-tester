@@ -5,9 +5,19 @@ Create webhook endpoints, then capture and inspect every request they receive.
 | Path       | What                                   | Deployed to                               |
 | ---------- | -------------------------------------- | ----------------------------------------- |
 | `apps/api` | Hono API + ingest on Cloudflare Workers, D1 storage | Cloudflare Worker `webhook-tester` at `hooks.procd.cc` |
-| `apps/web` | React + Vite dashboard                 | Vercel at `webhooks.procd.cc`             |
+| `apps/web` | React + Vite landing page and dashboard | Vercel at `webhooks.procd.cc`             |
 
 Each app keeps its own `package.json` and lockfile, so both deploy exactly as before.
+
+## Web routes
+
+| Path | What |
+| --- | --- |
+| `/` | Public landing page. The hero background (`src/components/landing/SignalField.jsx`) is a WebGL2 halftone field whose simulated requests feed the live preview below it. |
+| `/app` | Dashboard (sign-in screen when signed out). Old dashboard links on `/` carrying `webhook_endpoint`, `view`, `page`, `req_page` or `auth_error` are moved here. |
+| `/docs`, `/terms`, `/privacy` | Public API reference and legal pages. |
+
+`vite build` also writes `docs.html`, `terms.html`, `privacy.html` and `app.html` (served through Vercel `cleanUrls`) so each route has its own title, description, canonical URL and Open Graph tags, plus `robots.txt` and, when the site origin is known (`VITE_SITE_URL` or Vercel's production URL), `sitemap.xml`. `/app` is `noindex`. The social card is `public/images/og-image.png` (1200×630).
 
 ## How auth works
 

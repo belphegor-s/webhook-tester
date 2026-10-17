@@ -428,7 +428,7 @@ export function DocsPage() {
             <span className="text-sm font-medium text-muted-foreground">API</span>
           </div>
           <a
-            href="/"
+            href="/app"
             className="group inline-flex items-center gap-1.5 rounded-md text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
@@ -595,7 +595,7 @@ export function DocsPage() {
               <p className="mt-0.5 text-sm text-muted-foreground">Create a key in the dashboard and run the quickstart.</p>
             </div>
             <a
-              href="/"
+              href="/app"
               className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-xs transition-colors outline-none hover:bg-primary/90 focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               Open dashboard

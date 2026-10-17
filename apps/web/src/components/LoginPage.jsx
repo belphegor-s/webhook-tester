@@ -56,7 +56,9 @@ export function LoginPage({ error: sessionError }) {
       </div>
 
       <header className="flex items-center px-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">
-        <Logo />
+        <a href="/" className="rounded-md p-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50" aria-label="Webhook Tester home">
+          <Logo />
+        </a>
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 py-10">

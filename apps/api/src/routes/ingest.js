@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { appUrl } from '../config.js';
+import { DASHBOARD_PATH, appUrl } from '../config.js';
 import { errorResponse, jsonResponse } from '../lib/http.js';
 import { findWebhookByEndpoint } from '../db/webhooks.js';
 import { insertRequest } from '../db/requests.js';
@@ -16,7 +16,7 @@ ingest.all('/:endpoint', async (c) => {
 
 	// Opening the URL in a browser jumps to the dashboard for this webhook.
 	if (method === 'GET') {
-		return Response.redirect(`${appUrl(c.env)}/?webhook_endpoint=${encodeURIComponent(endpoint)}`, 302);
+		return Response.redirect(`${appUrl(c.env)}${DASHBOARD_PATH}?webhook_endpoint=${encodeURIComponent(endpoint)}`, 302);
 	}
 
 	try {

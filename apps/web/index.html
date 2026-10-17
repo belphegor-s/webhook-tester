@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script src="/theme-init.js"></script>
 
-    <title>Webhook Tester · Capture &amp; inspect HTTP requests</title>
-    <meta name="description" content="Create webhook endpoints in seconds, then capture, inspect and debug every incoming HTTP request: headers, body and query params, live." />
+    <title>Webhook Tester · Capture &amp; inspect webhooks live</title>
+    <meta name="description" content="Free webhook testing tool. Create an endpoint in one click, point Stripe, GitHub or any HTTP client at it, and inspect every request's headers, body and query string the moment it lands." />
+    <link rel="canonical" href="%SITE_URL%/" />
     <meta name="application-name" content="Webhook Tester" />
     <meta name="apple-mobile-web-app-title" content="Webhooks" />
     <meta name="color-scheme" content="light dark" />
@@ -22,21 +23,42 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Webhook Tester" />
-    <meta property="og:title" content="Webhook Tester" />
-    <meta property="og:description" content="Capture, inspect and debug incoming HTTP requests." />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Webhook Tester · Every webhook, caught live" />
+    <meta property="og:description" content="Create an endpoint in one click and watch every request land, with headers, body and query string intact. Free, with a REST API and live streaming." />
     <meta property="og:url" content="%SITE_URL%/" />
     <meta property="og:image" content="%SITE_URL%/images/og-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Webhook Tester: capture, inspect and debug incoming HTTP requests." />
+    <meta property="og:image:alt" content="Webhook Tester: requests streaming into an endpoint, with the headline Every webhook, caught live." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Webhook Tester" />
-    <meta name="twitter:description" content="Capture, inspect and debug incoming HTTP requests." />
+    <meta name="twitter:title" content="Webhook Tester · Every webhook, caught live" />
+    <meta name="twitter:description" content="Create an endpoint in one click and watch every request land, with headers, body and query string intact." />
     <meta name="twitter:image" content="%SITE_URL%/images/og-image.png" />
+    <meta name="twitter:image:alt" content="Webhook Tester: requests streaming into an endpoint, with the headline Every webhook, caught live." />
+
+    <!-- Structured data is inert JSON, so the strict script-src CSP doesn't apply to it. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Webhook Tester",
+        "url": "%SITE_URL%/",
+        "image": "%SITE_URL%/images/og-image.png",
+        "description": "Create webhook endpoints, then capture and inspect every HTTP request they receive, live.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; padding: 2rem; text-align: center">Webhook Tester captures and inspects incoming HTTP requests. Please enable JavaScript to use it.</p>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
