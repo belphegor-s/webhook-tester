@@ -121,40 +121,45 @@ export function Inspector({ requests, total, selectedId, onSelect, className }) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <ul aria-label="Captured requests" className="relative h-[15.5rem] overflow-hidden border-b md:h-auto md:border-r md:border-b-0">
-          <AnimatePresence initial={false}>
-            {requests.map((r) => (
-              <motion.li
-                key={r.id}
-                layout="position"
-                initial={{ opacity: 0, y: -14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="border-b last:border-b-0"
-              >
-                <button
-                  type="button"
-                  onClick={() => onSelect(r.id)}
-                  aria-pressed={selected?.id === r.id}
-                  className={cn(
-                    'relative grid w-full grid-cols-[3.75rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-left transition-colors outline-none hover:bg-accent/60 focus-visible:bg-accent/70',
-                    selected?.id === r.id && 'bg-accent/70',
-                  )}
+        {/* The list never sets the card's height: a fixed box on phones, and on wider screens it fills whatever the
+            detail pane needs. New rows push old ones out of view instead of growing the card and shifting the page. */}
+        <div className="relative h-[15.5rem] overflow-hidden border-b md:h-auto md:border-r md:border-b-0">
+          <ul aria-label="Captured requests" className="md:absolute md:inset-x-0 md:top-0">
+            {/* popLayout takes a leaving row out of the flow at once, so the list never briefly holds an extra row. */}
+            <AnimatePresence initial={false} mode="popLayout">
+              {requests.map((r) => (
+                <motion.li
+                  key={r.id}
+                  layout="position"
+                  initial={{ opacity: 0, y: -14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="border-b last:border-b-0"
                 >
-                  {selected?.id === r.id && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-foreground" aria-hidden />}
-                  <MethodBadge method={r.method} className="w-fit" />
-                  <span className="min-w-0">
-                    <span className="block truncate font-mono text-xs">{r.event}</span>
-                    <span className="block truncate text-[11px] text-muted-foreground">{r.agent}</span>
-                  </span>
-                  <time className="text-[11px] text-muted-foreground tabular-nums">{ago(r.receivedAt, now)}</time>
-                </button>
-              </motion.li>
-            ))}
-          </AnimatePresence>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(r.id)}
+                    aria-pressed={selected?.id === r.id}
+                    className={cn(
+                      'relative grid w-full grid-cols-[3.75rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-left transition-colors outline-none hover:bg-accent/60 focus-visible:bg-accent/70',
+                      selected?.id === r.id && 'bg-accent/70',
+                    )}
+                  >
+                    {selected?.id === r.id && <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-foreground" aria-hidden />}
+                    <MethodBadge method={r.method} className="w-fit" />
+                    <span className="min-w-0">
+                      <span className="block truncate font-mono text-xs">{r.event}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">{r.agent}</span>
+                    </span>
+                    <time className="text-[11px] text-muted-foreground tabular-nums">{ago(r.receivedAt, now)}</time>
+                  </button>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ul>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent" aria-hidden />
-        </ul>
+        </div>
         <div className="hidden md:block">{selected && <Detail request={selected} tab={tab} setTab={setTab} />}</div>
       </div>
     </div>

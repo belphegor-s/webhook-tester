@@ -113,7 +113,8 @@ const EndpointPill = ({ sinkRef, last, caught }) => (
       <span className="hidden text-muted-foreground sm:inline">{HOST}</span>
       /webhook/<span className="text-muted-foreground">your-endpoint</span>
     </span>
-    <span className="hidden shrink-0 border-l pl-3 text-xs text-muted-foreground tabular-nums sm:inline" aria-live="off">
+    {/* Room for four digits, so the pill (and the packets aimed at it) never resize as the count grows. */}
+    <span className="hidden min-w-[5.25rem] shrink-0 border-l pl-3 text-xs text-muted-foreground tabular-nums sm:inline" aria-live="off">
       {caught} caught
     </span>
   </div>

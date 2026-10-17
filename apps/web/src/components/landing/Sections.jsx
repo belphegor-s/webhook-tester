@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
-import { motion } from 'framer-motion';
+import { lazy, Suspense, useId, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Check, Cloud, Database, KeyRound, Lock, Pause, Plus, Radio, ShieldCheck, Terminal, Waypoints } from 'lucide-react';
 import { Container } from '../layout/Container';
 import { Badge } from '../ui/Badge';
@@ -420,6 +420,43 @@ const FAQ = [
   { q: 'Should I send production data to it?', a: 'Best not. It is a testing tool, so avoid sending real secrets or sensitive personal data to your endpoints.' },
 ];
 
+// Opens and closes with a height animation; the answer stays in the DOM only while open.
+const FaqItem = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <div className="px-5">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium outline-none focus-visible:underline"
+        >
+          {question}
+          <Plus className={cn('size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]', open && 'rotate-45')} />
+        </button>
+      </h3>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id={id}
+            role="region"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ height: { duration: 0.35, ease }, opacity: { duration: 0.2 } }}
+            className="overflow-hidden"
+          >
+            <p className="pb-4 text-sm text-pretty text-muted-foreground">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const Faq = () => (
   <section id="faq" className="scroll-mt-20 border-t bg-subtle/50 py-24 sm:py-32">
     <Container className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-16">
@@ -441,13 +478,7 @@ export const Faq = () => (
       <Reveal delay={0.06}>
         <div className="divide-y rounded-2xl border bg-card shadow-xs">
           {FAQ.map(({ q, a }) => (
-            <details key={q} className="group px-5 [&_summary::-webkit-details-marker]:hidden">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-medium outline-none focus-visible:underline">
-                {q}
-                <Plus className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-45" />
-              </summary>
-              <p className="-mt-1 pb-4 text-sm text-pretty text-muted-foreground">{a}</p>
-            </details>
+            <FaqItem key={q} question={q} answer={a} />
           ))}
         </div>
       </Reveal>
